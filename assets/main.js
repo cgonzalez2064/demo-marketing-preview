@@ -385,6 +385,7 @@
       "doctors.filter_aria": "Filtrar por sector",
       "doctors.all": "Todos",
       "doctors.empty": "No encontramos casos con esa búsqueda.",
+      "doctors.more": "Ver todos los casos",
       "doctors.license": "Resultado",
       "doctors.hours": "Servicios",
       "doctors.insurers": "Periodo",
@@ -599,7 +600,8 @@
       "req.name_label@consultorio": "Nombre completo",
       "appt.specialty_label@consultorio": "Servicio",
       "insck.service_label@consultorio": "Servicio",
-      "demo.packages": "← Ver paquetes",
+      "demo.packages": "Ver paquetes",
+      "demo.hub": "← Todas las demos",
       "demo.sum_express": "Express · Q4,800 + IVA · plazo: 2 semanas",
       "demo.sum_starter": "Starter · Q6,800 + IVA · plazo: 3 semanas",
       "demo.sum_profesional": "Profesional · Q10,500 + IVA · plazo: 4 a 5 semanas",
@@ -985,6 +987,7 @@
       "doctors.filter_aria": "Filter by industry",
       "doctors.all": "All",
       "doctors.empty": "No case studies match that search.",
+      "doctors.more": "View all case studies",
       "doctors.license": "Result",
       "doctors.hours": "Services",
       "doctors.insurers": "Period",
@@ -1199,7 +1202,8 @@
       "req.name_label@consultorio": "Full name",
       "appt.specialty_label@consultorio": "Service",
       "insck.service_label@consultorio": "Service",
-      "demo.packages": "← All packages",
+      "demo.packages": "All packages",
+      "demo.hub": "← All demos",
       "demo.sum_express": "Express · Q4,800 + VAT · lead time: 2 weeks",
       "demo.sum_starter": "Starter · Q6,800 + VAT · lead time: 3 weeks",
       "demo.sum_profesional": "Profesional · Q10,500 + VAT · lead time: 4 to 5 weeks",
@@ -2360,6 +2364,20 @@
       Array.prototype.forEach.call(docFilter.querySelectorAll('.chip-btn'), function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
       filterDoctors(true);
     });
+    /* A long list opens with its first cases; the rest come on request or with any search. */
+    if (docGrid.children.length > 4){
+      var docMore = document.createElement('button');
+      docMore.type = 'button';
+      docMore.className = 'btn btn-ghost doc-more' + (docGrid.children.length > 6 ? '' : ' doc-more-phone');
+      docMore.setAttribute('data-i18n', 'doctors.more');
+      docMore.textContent = t('doctors.more');
+      docGrid.classList.add('is-collapsed');
+      docGrid.parentNode.insertBefore(docMore, docGrid.nextSibling);
+      var docExpand = function(){ if (docMore.hidden) return; docGrid.classList.remove('is-collapsed'); docMore.hidden = true; };
+      docMore.addEventListener('click', docExpand);
+      if (docSearch) docSearch.addEventListener('input', docExpand);
+      if (docFilter) docFilter.addEventListener('click', docExpand);
+    }
   }
 
   /* ---------- Appointment: preselect specialty / doctor (cards, service pages, ?caso= / ?servicio=) ---------- */

@@ -169,7 +169,7 @@
 
   /* ---------- 4. Services: an index that opens in place (phone and tablet) ---------- */
   (function () {
-    var grid = doc.querySelector('.services-grid');
+    var grid = doc.querySelector('.services-grid[data-index]'); // the mosaic layout needs no accordion
     if (!grid) return;
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.service-card'));
     if (cards.length < 2) return;
@@ -549,7 +549,7 @@
 
   /* ---------- 11. Services index: a photo follows the pointer (desktop) ---------- */
   (function () {
-    var grid = doc.querySelector('.services-grid');
+    var grid = doc.querySelector('.services-grid[data-index]');
     if (!grid) return;
     var wide = window.matchMedia('(min-width: 900px)');
     var peek = doc.createElement('figure');

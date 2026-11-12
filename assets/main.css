@@ -1708,69 +1708,8 @@ html.fx-on [data-grow] { will-change: clip-path; }
 .fx-band-row:nth-child(2) { color: transparent; -webkit-text-stroke: 1.5px var(--text); font-family: var(--font-serif); font-style: italic; font-weight: 400; text-transform: none; letter-spacing: -.02em; }
 .fx-band-row em { font-style: normal; color: var(--accent); -webkit-text-stroke: 0; }
 
-/* ---------- Services: an index you open, with a photo that follows the pointer ---------- */
-.services-grid { display: block; margin-top: clamp(24px, 4vw, 56px); border-top: 1px solid var(--line-strong); }
-.services-grid > .service-card, .services-grid > .service-card:first-child, .services-grid > .service-card[data-service="service1"] {
-  position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px;
-  grid-template-areas: "num title toggle" "media media media" "desc desc desc" "actions actions actions";
-  grid-template-rows: repeat(4, max-content); /* rows keep their size while the block is closed */
-  column-gap: 10px; align-items: center; padding: 0; margin: 0; border: 0; border-bottom: 1px solid var(--line-strong); border-radius: 0;
-  background: none; box-shadow: none; overflow: hidden; transform: none; flex-direction: row;
-}
-.services-grid > .service-card:hover { transform: none; box-shadow: none; }
-.services-grid > .service-card .service-body, .services-grid > .service-card[data-service="service1"] .service-body { display: contents; }
-.services-grid > .service-card .service-icon, .services-grid > .service-card.has-photo .service-icon { display: none; }
-.services-grid .service-num { grid-area: num; position: static; display: block; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; color: var(--muted); font: 500 .8125rem/1 var(--font); letter-spacing: .06em; font-variant-numeric: tabular-nums; }
-.services-grid > .service-card h3, .services-grid > .service-card[data-service="service1"] h3 { grid-area: title; margin: 0; padding: 22px 0; font-size: clamp(1.55rem, 6.4vw, 2.2rem); line-height: 1; letter-spacing: -.04em; font-stretch: 90%; }
-.services-grid > .service-card h3 a { color: inherit; text-decoration: none; }
-.services-grid > .service-card .service-media, .services-grid > .service-card:first-child .service-media { grid-area: media; display: block; flex: none; width: 100%; min-height: 0; aspect-ratio: 16 / 10; margin: 0 0 16px; border-radius: 16px; overflow: hidden; }
-.services-grid > .service-card p, .services-grid > .service-card[data-service="service1"] p { grid-area: desc; max-width: 52ch; font-size: 1rem; color: var(--text-2); flex: none; }
-.services-grid .service-actions { grid-area: actions; margin: 16px 0 26px; padding: 0; border: 0; }
-.services-grid > .service-card::after { content: ""; grid-area: toggle; justify-self: end; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line-strong);
-  background: linear-gradient(currentColor, currentColor) center / 12px 1.5px no-repeat, linear-gradient(currentColor, currentColor) center / 1.5px 12px no-repeat;
-  transition: transform 500ms var(--ease-out), background-color 300ms var(--ease), color 300ms var(--ease), border-color 300ms var(--ease); display: none; }
-html.fx-on .services-grid.is-accordion > .service-card::after { display: block; }
-html.fx-on .services-grid.is-accordion > .service-card { cursor: pointer; transition: height 620ms cubic-bezier(.22, 1, .36, 1); -webkit-tap-highlight-color: transparent; }
-html.fx-on .services-grid.is-accordion > .service-card.is-open::after { transform: rotate(135deg); background-color: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
-html.fx-on .services-grid.is-accordion > .service-card h3 { transition: color 300ms var(--ease), transform 500ms var(--ease-out); transform-origin: 0 50%; }
-html.fx-on .services-grid.is-accordion > .service-card.is-open h3 { color: var(--accent-ink); }
-html.fx-on .services-grid.is-accordion > .service-card .service-media, html.fx-on .services-grid.is-accordion > .service-card p, html.fx-on .services-grid.is-accordion > .service-card .service-actions { opacity: 0; transform: translateY(14px); transition: opacity 320ms var(--ease), transform 520ms var(--ease-out); clip-path: none; }
-html.fx-on .services-grid.is-accordion > .service-card.is-open .service-media, html.fx-on .services-grid.is-accordion > .service-card.is-open p, html.fx-on .services-grid.is-accordion > .service-card.is-open .service-actions { opacity: 1; transform: none; transition-delay: 120ms; }
-html.fx-on .services-grid.is-accordion > .service-card.is-open p { transition-delay: 180ms; }
-html.fx-on .services-grid.is-accordion > .service-card.is-open .service-actions { transition-delay: 240ms; }
-html.fx-on .services-grid.is-accordion > .service-card .service-photo { scale: 1.18; transition: scale 1.4s var(--ease-out); }
-html.fx-on .services-grid.is-accordion > .service-card.is-open .service-photo { scale: 1; }
-html.fx-on.js-reveal .services-grid > .service-card.reveal { opacity: 1; filter: none; transform: none; }
-html.fx-on.js-reveal .services-grid > .service-card.reveal h3, html.fx-on.js-reveal .services-grid > .service-card.reveal .service-num { opacity: 0; translate: 0 26px; transition: opacity 700ms var(--ease-out), translate 900ms var(--ease-out), color 300ms var(--ease), transform 500ms var(--ease-out); }
-html.fx-on.js-reveal .services-grid > .service-card.reveal.in h3, html.fx-on.js-reveal .services-grid > .service-card.reveal.in .service-num { opacity: 1; translate: 0 0; }
-
-@media (min-width: 900px) {
-  .services-grid > .service-card, .services-grid > .service-card:first-child, .services-grid > .service-card[data-service="service1"] {
-    grid-template-columns: 56px 132px minmax(0, 1.15fr) minmax(0, 1fr) auto; grid-template-areas: "num media title desc actions"; grid-template-rows: auto; column-gap: 28px; padding: 22px 18px; overflow: hidden; isolation: isolate;
-  }
-  .services-grid > .service-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--accent); transform: scaleY(0); transform-origin: 50% 100%; transition: transform 520ms cubic-bezier(.22, 1, .36, 1); }
-  .services-grid > .service-card .service-media, .services-grid > .service-card:first-child .service-media { width: 132px; aspect-ratio: 3 / 2; margin: 0; border-radius: 10px; }
-  .services-grid > .service-card h3, .services-grid > .service-card[data-service="service1"] h3 { padding: 0; font-size: clamp(1.9rem, 2.9vw, 3.1rem); transition: transform 520ms cubic-bezier(.22, 1, .36, 1), color 300ms var(--ease); }
-  .services-grid > .service-card p, .services-grid > .service-card[data-service="service1"] p { font-size: .9688rem; transition: color 300ms var(--ease); }
-  .services-grid .service-actions { margin: 0; flex-wrap: nowrap; }
-  .services-grid .service-actions .text-link { display: none; }
-  .services-grid .service-num { transition: color 300ms var(--ease); }
-  .services-grid > .service-card .service-photo { transition: transform 900ms var(--ease-out); }
-  @media (hover: hover) {
-    .services-grid > .service-card:hover::before, .services-grid > .service-card:focus-within::before { transform: scaleY(1); }
-    .services-grid > .service-card:hover h3, .services-grid > .service-card:focus-within h3 { transform: translateX(14px); color: var(--accent-contrast); }
-    .services-grid > .service-card:hover p, .services-grid > .service-card:hover .service-num, .services-grid > .service-card:focus-within p, .services-grid > .service-card:focus-within .service-num { color: var(--accent-contrast); }
-    .services-grid > .service-card:hover .service-photo { transform: scale(1.12); }
-    .services-grid > .service-card:hover .service-open { background: var(--accent-contrast); color: var(--accent); border-color: var(--accent-contrast); }
-    html.pal-lumen .services-grid > .service-card:hover .service-open, html.pal-medianoche .services-grid > .service-card:hover .service-open { color: var(--bg); }
-    .services-grid > .service-card:hover .service-open svg { background: none; border-color: transparent; color: inherit; transform: rotate(-45deg); }
-  }
-}
-/* The photo that follows the pointer over the index (created by fx.js). */
-.fx-peek { position: fixed; left: 0; top: 0; z-index: 60; width: clamp(240px, 24vw, 360px); aspect-ratio: 4 / 5; margin: 0; border-radius: 18px; overflow: hidden; pointer-events: none; opacity: 0; box-shadow: var(--shadow-lg); will-change: transform, opacity; transition: opacity 260ms var(--ease); background: var(--surface-2); }
-.fx-peek.is-on { opacity: 1; }
-.fx-peek img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; scale: 1.15; transition: opacity 380ms var(--ease), scale 900ms var(--ease-out); }
-.fx-peek img.is-on { opacity: 1; scale: 1; }
+/* ---------- Services: see the photo mosaic in stage.css ---------- */
+.services-grid > .service-card .service-icon { display: none; }
 
 /* ---------- Case studies: large cards on a contrasting band ---------- */
 html.profile-clinica .doctors {
@@ -1857,3 +1796,116 @@ html.fx-on .footer-word, html.fx-on .cta-inner h2 { will-change: transform; }
 }
 html.a11y-motion.fx-intro::after, html.a11y-motion.fx-enter::after, html.a11y-motion.fx-leave::after, html.a11y-motion .fx-band, html.a11y-motion .fx-dot, html.a11y-motion .fx-peek, html.a11y-motion .fx-progress { display: none; }
 html.a11y-motion .js-reveal .about-art.reveal { clip-path: none; }
+
+/* ==========================================================================
+   Stage layer
+   The image-led pieces: a full-screen hero with its photographs behind the
+   headline, the services as a photo mosaic, and larger type on phones.
+   ========================================================================== */
+
+/* ---------- Hero: the photographs fill the first screen ---------- */
+.hero { position: relative; isolation: isolate; padding-top: 0; }
+.hero-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; min-height: calc(100svh - var(--header-h)); padding-bottom: clamp(26px, 5vw, 56px); color: #fff; background: #0b0b0d; overflow: clip; }
+.hero-stage .hero-top { padding-top: 96px; }
+.hero-stage .hero-grid { display: block; margin-top: clamp(16px, 2.4vw, 30px); }
+.hero-stage h1 { color: #fff; font-size: clamp(2.7rem, 10.6vw, 8.6rem); line-height: .92; max-width: 14ch; text-wrap: balance; }
+.hero-stage h1 em { color: var(--stage-em, #fff); }
+.hero-stage .eyebrow { color: rgba(255, 255, 255, .86); }
+.hero-stage .lead { color: rgba(255, 255, 255, .92); max-width: 40ch; }
+.hero-stage .status-chip { display: none; }
+@media (min-width: 900px) { .hero-stage h1 { font-size: clamp(4rem, 7.4vw, 7.6rem); max-width: 17ch; } .hero-stage .hero-top { padding-top: 120px; } }
+.hero-stage .badges { display: none; }
+.hero-stage .btn-glass, .hero-stage .btn-ghost { color: #fff; border-color: rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.hero-stage .btn-glass:hover, .hero-stage .btn-ghost:hover { background: #fff; color: #0b0b0d; }
+.hero-stage .hero-art, html.pkg-express .hero-stage .hero-art { position: absolute; inset: 0; z-index: -1; display: block; width: auto; height: auto; margin: 0; padding: 0; overflow: hidden; transform: none !important; }
+.hero-stage .hero-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 8, 10, .5) 0%, rgba(8, 8, 10, .12) 30%, rgba(8, 8, 10, .62) 62%, rgba(8, 8, 10, .92) 100%); }
+.hero-stage .hero-photo, .hero-stage .hero-photo.p1, .hero-stage .hero-photo.p2, .hero-stage .hero-photo.p3,
+html.pkg-express .hero-stage .hero-photo.p1 { position: absolute; inset: 0; display: block; width: 100%; height: 100%; margin: 0; aspect-ratio: auto; transform: none !important; border-radius: 0; box-shadow: none; outline: 0; opacity: 0; animation: stage-fade 21s linear infinite; }
+.hero-stage .hero-photo.p1 { opacity: 1; }
+.hero-stage .hero-photo.p2 { animation-delay: 7s; }
+.hero-stage .hero-photo.p3 { animation-delay: 14s; }
+.hero-stage .hero-photo .hero-img { width: 100%; height: 100%; object-fit: cover; animation: stage-zoom 21s linear infinite; animation-delay: inherit; }
+.hero-stage .hero-seal { display: none; }
+@keyframes stage-fade { 0% { opacity: 0; } 5% { opacity: 1; } 33% { opacity: 1; } 40% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes stage-zoom { 0% { transform: scale(1.02); } 40% { transform: scale(1.14); } 100% { transform: scale(1.14); } }
+/* One photograph (Express, or a single upload): it stays, with a slow push in. */
+html.pkg-express .hero-stage .hero-photo.p1, .hero-stage .hero-photo:only-of-type { opacity: 1; animation: none; }
+html.pkg-express .hero-stage .hero-photo.p2, html.pkg-express .hero-stage .hero-photo.p3 { display: none; }
+html.pkg-express .hero-stage .hero-img, .hero-stage .hero-photo:only-of-type .hero-img { animation: stage-push 24s ease-out both; }
+@keyframes stage-push { from { transform: scale(1.12); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .hero-stage .hero-photo, .hero-stage .hero-img { animation: none !important; } .hero-stage .hero-photo.p1 { opacity: 1; } }
+html.a11y-motion .hero-stage .hero-photo, html.a11y-motion .hero-stage .hero-img { animation: none !important; }
+html.a11y-motion .hero-stage .hero-photo.p1 { opacity: 1; }
+
+/* ---------- Services: a photo mosaic; each tile opens its sheet ---------- */
+html .services-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border: 0; padding: 0; counter-reset: none; }
+html .services-grid > .service-card { position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 14px; height: auto !important; min-height: 0; aspect-ratio: 4 / 5; margin: 0; border: 0; border-radius: 18px; overflow: hidden; background: #111; color: #fff; isolation: isolate; grid-template: none; }
+html .services-grid > .service-card:first-child { grid-column: span 2; aspect-ratio: 16 / 11; }
+html .services-grid > .service-card .service-media { position: absolute; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; margin: 0; border-radius: 0; aspect-ratio: auto; clip-path: none; opacity: 1; }
+html .services-grid > .service-card .service-photo { width: 100%; height: 100%; object-fit: cover; scale: 1; transition: transform 900ms var(--ease-out); }
+html .services-grid > .service-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(8, 8, 10, .34) 0%, rgba(8, 8, 10, 0) 34%, rgba(8, 8, 10, .82) 100%); }
+html .services-grid > .service-card .service-num { position: absolute; top: 12px; left: 14px; color: #fff; font: 600 .75rem/1 var(--font); letter-spacing: .08em; opacity: .9; }
+html .services-grid > .service-card .service-body { position: static; display: block; flex: 0 0 auto; margin-top: auto; padding: 0; }
+html .services-grid > .service-card .service-icon, html .services-grid > .service-card .service-body > p, html .services-grid > .service-card .text-link { display: none; }
+html .services-grid > .service-card h3 { margin: 0; font-size: clamp(1.15rem, 4.4vw, 1.7rem); line-height: 1.02; letter-spacing: -.035em; color: #fff; }
+html .services-grid > .service-card:first-child h3 { font-size: clamp(1.7rem, 7vw, 3rem); }
+html .services-grid > .service-card .service-link { color: #fff; text-decoration: none; }
+html .services-grid > .service-card .service-actions { position: static; margin: 0; padding: 0; }
+html .services-grid > .service-card .service-open { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; color: transparent; font-size: 0; cursor: pointer; z-index: 1; }
+html .services-grid > .service-card .service-open svg { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; padding: 9px; border-radius: 50%; background: rgba(255, 255, 255, .16); color: #fff; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background-color 300ms var(--ease), color 300ms var(--ease), transform 300ms var(--ease); }
+html .services-grid > .service-card:active { transform: scale(.985); }
+@media (hover: hover) and (pointer: fine) {
+  html .services-grid > .service-card:hover .service-photo { transform: scale(1.07); }
+  html .services-grid > .service-card:hover .service-open svg { background: var(--accent); color: var(--accent-contrast); transform: rotate(-45deg); }
+}
+@media (min-width: 900px) {
+  html .services-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  html .services-grid > .service-card { aspect-ratio: auto; min-height: 300px; border-radius: 22px; }
+  html .services-grid > .service-card:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+  html .services-grid > .service-card:nth-child(6), html .services-grid > .service-card:nth-child(11) { grid-column: span 2; }
+  html .services-grid > .service-card { padding: 20px; }
+  html .services-grid > .service-card .service-body > p { display: block; margin: 8px 0 0; max-width: 40ch; font-size: .9375rem; line-height: 1.4; color: rgba(255, 255, 255, .86); opacity: 0; transform: translateY(8px); transition: opacity 350ms var(--ease), transform 350ms var(--ease); }
+  html .services-grid > .service-card:hover .service-body > p, html .services-grid > .service-card:focus-within .service-body > p { opacity: 1; transform: none; }
+  html .services-grid > .service-card h3 { font-size: clamp(1.3rem, 1.5vw, 1.8rem); }
+  html .services-grid > .service-card:first-child h3 { font-size: clamp(2.2rem, 3.4vw, 3.6rem); }
+}
+
+/* ---------- Phones: section headings carry more weight ---------- */
+@media (max-width: 899px) {
+  main > .section .section-head h2 { font-size: clamp(2.5rem, 10.4vw, 4rem); line-height: .96; }
+}
+
+/* ---------- Cases: the photograph leads, the result sits large under it ---------- */
+html.profile-clinica .doctor-card .doc-avatar { aspect-ratio: 4 / 3; }
+@media (max-width: 619px) { html.profile-clinica .doctor-card .doc-avatar { aspect-ratio: 5 / 4; } }
+
+/* ---------- Way back to the demos directory: a clear pill at the top of every page ---------- */
+.demo-banner a.demo-hub { display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; margin-right: 10px; border-radius: 999px; background: #f3efe7; color: #131316; font-weight: 700; text-decoration: none; white-space: nowrap; transition: transform var(--t-fast) var(--ease); }
+.demo-banner a.demo-hub:hover { text-decoration: none; background: #fff; }
+.demo-banner a.demo-hub:active { transform: scale(.96); }
+.demo-banner .demo-home:not(.demo-hub) { text-decoration: underline; text-underline-offset: 3px; }
+.demo-strip { justify-content: flex-start; padding-inline: max(16px, env(safe-area-inset-left)); }
+/* Services mosaic: no orphan tile on phones */
+@media (max-width: 899px) { html .services-grid > .service-card:last-child:nth-child(even) { grid-column: span 2; } }
+/* Hero: the words always win over the photograph */
+.hero-stage .hero-art::after { background: linear-gradient(180deg, rgba(8,8,10,.55) 0%, rgba(8,8,10,.18) 26%, rgba(8,8,10,.72) 56%, rgba(8,8,10,.96) 100%); }
+@media (min-width: 900px) { .hero-stage .hero-art::after { background: linear-gradient(90deg, rgba(8,8,10,.86) 0%, rgba(8,8,10,.55) 42%, rgba(8,8,10,.08) 78%), linear-gradient(180deg, rgba(8,8,10,.5) 0%, rgba(8,8,10,0) 28%, rgba(8,8,10,.7) 100%); } }
+@media (min-width: 900px) {
+  html .services-grid > .service-card:nth-child(6):last-child { grid-column: span 4; min-height: 260px; }
+  html .services-grid > .service-card:nth-child(7):last-child { grid-column: span 2; }
+  html .services-grid > .service-card:nth-child(2):nth-last-child(2), html .services-grid > .service-card:nth-child(3):last-child { grid-column: span 2; }
+}
+/* ---------- Cases: the first ones, then the rest on request ---------- */
+.doc-more { display: flex; margin: 22px auto 0; }
+.doc-more[hidden] { display: none; }
+@media (max-width: 699px) { .doctors-grid.is-collapsed > li:nth-child(n+5) { display: none; } }
+@media (min-width: 700px) { .doctors-grid.is-collapsed > li:nth-child(n+7) { display: none; } .doc-more-phone { display: none; } }
+.hero-stage .hero-art::after { z-index: 9; pointer-events: none; }
+/* ---------- Header over the photograph: white until the page scrolls ---------- */
+body:not(.service-page):not(.doc-page) .site-header:not(.is-scrolled) { --text: #fff; --text-2: rgba(255, 255, 255, .86); --muted: rgba(255, 255, 255, .72); --line: rgba(255, 255, 255, .2); --line-strong: rgba(255, 255, 255, .38); --surface-2: rgba(255, 255, 255, .14); color: #fff; }
+/* Services mosaic also when the grid has the three-up class */
+@media (min-width: 900px) {
+  html .services-grid.even-3 > .service-card:first-child { grid-column: span 2; grid-row: span 2; }
+  html .services-grid.even-3 > .service-card:nth-child(2):nth-last-child(2), html .services-grid.even-3 > .service-card:nth-child(3):last-child { grid-column: span 2; }
+  html .services-grid.even-3 > .service-card:nth-child(6):last-child { grid-column: span 4; }
+}

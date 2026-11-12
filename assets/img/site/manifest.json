@@ -1,0 +1,332 @@
+{
+ "caso-app": {
+  "h": 600,
+  "src": "case-app.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-cafe": {
+  "h": 600,
+  "src": "case-coffee.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-gimnasio": {
+  "h": 600,
+  "src": "case-fitness.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-hotel": {
+  "h": 600,
+  "src": "case-hotel.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-moda": {
+  "h": 600,
+  "src": "case-fashion.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-piel": {
+  "h": 600,
+  "src": "case-skincare.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-podcast": {
+  "h": 600,
+  "src": "portrait-3.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "caso-restaurante": {
+  "h": 600,
+  "src": "case-restaurant.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "consultora-retrato": {
+  "h": 600,
+  "src": "consultant-portrait.jpg",
+  "variants": [
+   480,
+   800
+  ],
+  "w": 800
+ },
+ "destacado-cafe": {
+  "h": 1125,
+  "src": "case-coffee.jpg",
+  "variants": [
+   480,
+   900
+  ],
+  "w": 900
+ },
+ "est-diseno": {
+  "h": 1050,
+  "src": "hero-workspace.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-oficina": {
+  "h": 1050,
+  "src": "office-interior.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-paleta": {
+  "h": 1050,
+  "src": "branding.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-planificacion": {
+  "h": 1050,
+  "src": "strategy-session.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-podcast": {
+  "h": 1050,
+  "src": "podcast.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-producto": {
+  "h": 1050,
+  "src": "product-shoot.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-redes": {
+  "h": 1050,
+  "src": "social-content.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "est-video": {
+  "h": 1050,
+  "src": "content-shoot.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "hero-equipo": {
+  "h": 1350,
+  "src": "hero-studio.jpg",
+  "variants": [
+   480,
+   800,
+   1080
+  ],
+  "w": 1080
+ },
+ "hero-oficina": {
+  "h": 1125,
+  "src": "office-interior.jpg",
+  "variants": [
+   360,
+   600,
+   900
+  ],
+  "w": 900
+ },
+ "hero-set": {
+  "h": 1125,
+  "src": "product-shoot.jpg",
+  "variants": [
+   360,
+   600,
+   900
+  ],
+  "w": 900
+ },
+ "nosotros-equipo": {
+  "h": 845,
+  "src": "team-group.jpg",
+  "variants": [
+   800,
+   1400
+  ],
+  "w": 1400
+ },
+ "perfil-consultora": {
+  "h": 1125,
+  "src": "consultant-portrait.jpg",
+  "variants": [
+   480,
+   900
+  ],
+  "w": 900
+ },
+ "svc-analitica": {
+  "h": 667,
+  "src": "client-meeting.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-audiovisual": {
+  "h": 667,
+  "src": "content-shoot.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-branding": {
+  "h": 667,
+  "src": "branding.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-contenidos": {
+  "h": 667,
+  "src": "hero-workspace.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-correo": {
+  "h": 667,
+  "src": "case-app.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-estrategia": {
+  "h": 667,
+  "src": "strategy-session.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-eventos": {
+  "h": 667,
+  "src": "event-activation.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-medios": {
+  "h": 667,
+  "src": "podcast.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-producto": {
+  "h": 667,
+  "src": "product-shoot.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-publicidad": {
+  "h": 667,
+  "src": "analytics.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-redes": {
+  "h": 667,
+  "src": "social-content.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ },
+ "svc-web": {
+  "h": 667,
+  "src": "web-design.jpg",
+  "variants": [
+   600,
+   800,
+   1000
+  ],
+  "w": 1000
+ }
+}

@@ -1909,3 +1909,8 @@ body:not(.service-page):not(.doc-page) .site-header:not(.is-scrolled) { --text: 
   html .services-grid.even-3 > .service-card:nth-child(2):nth-last-child(2), html .services-grid.even-3 > .service-card:nth-child(3):last-child { grid-column: span 2; }
   html .services-grid.even-3 > .service-card:nth-child(6):last-child { grid-column: span 4; }
 }
+/* ---------- Reviews: a plain grid on every screen. No inner scroller, so the wheel always moves the page. ---------- */
+html .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; overflow: visible; margin-inline: 0; padding: 0; scroll-snap-type: none; cursor: auto; }
+html .reviews-grid > .review-card { flex: none; min-width: 0; }
+@media (min-width: 900px) { html .reviews-grid > .review-card:nth-child(n + 7) { display: none; } }
+html .demo-banner .demo-views { overflow-y: hidden; }

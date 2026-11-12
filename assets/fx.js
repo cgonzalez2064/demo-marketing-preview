@@ -349,7 +349,7 @@
 
   /* ---------- 8b. Reviews on desktop: drag with momentum (phones show a stacked list) ---------- */
   (function () {
-    var rail = doc.querySelector('.reviews-grid');
+    var rail = doc.querySelector('.reviews-grid[data-rail]');
     if (!rail || !finePointer || !window.matchMedia('(min-width: 900px)').matches) return;
     var down = false, moved = false, startX = 0, startLeft = 0, samples = [], raf = 0;
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }

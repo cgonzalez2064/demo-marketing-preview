@@ -8,4 +8,15 @@
     if (p.size) r.setAttribute('data-text', String(p.size).replace(/[^0-2]/g, ''));
     ['contrast', 'motion', 'links', 'spacing'].forEach(function(k){ if (p[k]) r.classList.add('a11y-' + k); });
   } catch (e) { /* storage unavailable: defaults */ }
+  /* Page curtain (styles in main.css, cleared by fx.js): the brand intro on the
+     first page of a visit and a short wipe on the following ones. Skipped with
+     reduced motion. */
+  try {
+    var d = document.documentElement;
+    var quiet = d.classList.contains('a11y-motion') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!quiet) {
+      d.classList.add(sessionStorage.getItem('cardumen_seen') ? 'fx-enter' : 'fx-intro');
+      sessionStorage.setItem('cardumen_seen', '1');
+    }
+  } catch (e) { /* private mode: no curtain */ }
 })();

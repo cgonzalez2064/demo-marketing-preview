@@ -11,9 +11,15 @@
      scrolling.
    - Work stops when its element is off screen or the tab is hidden.
 
-   Packages: Express and Starter get the essentials (header, ribbon, carousel).
-   Profesional adds the school of fish and magnetic buttons. Premium adds the
-   cursor label and the depth effect on the cover photos.
+   - Everything is plain JavaScript (IntersectionObserver, requestAnimationFrame
+     and the Web Animations API), so it behaves the same on iPhone, Android and
+     desktop. No CSS feature that only some browsers support is required.
+
+   Packages: all four get the curtain, the rising headings, the services index,
+   the moving ribbon, the school of fish and the depth on scroll. Profesional
+   adds the kinetic line, the photo that follows the pointer and magnetic
+   buttons. Premium adds the pointer follower, the card tilt and the depth
+   effect on the cover photos.
    ========================================================================== */
 (function () {
   'use strict';
@@ -27,6 +33,42 @@
   function calm() { return reduceQuery.matches || root.classList.contains('a11y-motion'); }
   function each(list, fn) { Array.prototype.forEach.call(list, fn); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  /* ---------- 0. Shared clock: one loop for everything tied to the scroll ---------- */
+  var vh = window.innerHeight, vw = window.innerWidth;
+  var scroll = { y: window.scrollY, v: 0 };          // v: smoothed px per frame
+  var tasks = [], alive = [], lastWake = 0, loopId = 0, lastT = 0;
+  function loop(now) {
+    loopId = 0;
+    var dt = clamp((now - (lastT || now)) / 16.667, 0.2, 3); lastT = now;
+    var y = window.scrollY, d = y - scroll.y;
+    scroll.y = y;
+    scroll.v += (d / dt - scroll.v) * 0.18;
+    if (Math.abs(scroll.v) < 0.02) scroll.v = 0;
+    if (!calm()) for (var i = 0; i < tasks.length; i++) tasks[i](y, dt, now);
+    var keep = !doc.hidden && !calm() && (now - lastWake < 500 || scroll.v !== 0 || alive.some(function (fn) { return fn(); }));
+    if (keep) loopId = requestAnimationFrame(loop); else { scroll.v = 0; lastT = 0; }
+  }
+  function wake() { lastWake = performance.now(); if (!loopId) loopId = requestAnimationFrame(loop); }
+  window.addEventListener('scroll', wake, { passive: true });
+  window.addEventListener('resize', function () { vh = window.innerHeight; vw = window.innerWidth; wake(); });
+  doc.addEventListener('visibilitychange', wake);
+
+  /* Motion switch: html.fx-on turns the animated layout on. It follows the
+     system setting and the accessibility panel live. */
+  var motionListeners = [];
+  function syncMotion() {
+    var on = !calm();
+    if (on === root.classList.contains('fx-on')) return;
+    root.classList.toggle('fx-on', on);
+    motionListeners.forEach(function (fn) { fn(on); });
+    if (on) wake();
+  }
+  new MutationObserver(syncMotion).observe(root, { attributes: true, attributeFilter: ['class'] });
+  if (reduceQuery.addEventListener) reduceQuery.addEventListener('change', syncMotion);
+
+  /* The curtain is pure CSS (class set by a11y-boot.js); remove the class when done. */
+  setTimeout(function () { root.classList.remove('fx-intro', 'fx-enter'); }, root.classList.contains('fx-intro') ? 1700 : 800);
 
   /* ---------- 1. Header steps aside while scrolling down ---------- */
   (function () {
@@ -46,10 +88,10 @@
     }, { passive: true });
   })();
 
-  /* ---------- 2. Headline words (keeps the effect after a language change) ---------- */
+  /* ---------- 2. Words: the cover headline and every section heading ---------- */
   (function () {
-    var heads = doc.querySelectorAll('[data-split]');
-    if (!heads.length) return;
+    each(doc.querySelectorAll('.reveal.section-head h2, .reveal.about-copy h2, .reveal.maternity-copy h2, .reveal.cta-inner h2'), function (h) { h.setAttribute('data-rise', ''); });
+    var heads = doc.querySelectorAll('[data-split], [data-rise]');
     function split(el) {
       if (el.querySelector('.fx-word')) return;
       var i = 0;
@@ -62,7 +104,7 @@
               if (/^\s+$/.test(part)) { frag.appendChild(doc.createTextNode(' ')); return; }
               var outer = doc.createElement('span');
               var inner = doc.createElement('span');
-              outer.className = 'fx-word d' + Math.min(i++, 14);
+              outer.className = 'fx-word d' + Math.min(i++, 12);
               inner.textContent = part;
               outer.appendChild(inner);
               frag.appendChild(outer);
@@ -80,7 +122,7 @@
     });
   })();
 
-  /* ---------- 3. Ribbon with the list of services ---------- */
+  /* ---------- 3. Ribbon with the list of services: speeds up and turns with the scroll ---------- */
   (function () {
     var box = doc.querySelector('[data-marquee]');
     if (!box) return;
@@ -109,12 +151,206 @@
     function pace() { box.style.setProperty('--mq', Math.max(18, Math.round(track.scrollWidth / 2 / 70)) + 's'); }
     pace();
     if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(pace);
+
+    var x = 0, dir = 1, seen = false;
+    new IntersectionObserver(function (en) { seen = en[0].isIntersecting; if (seen) wake(); }).observe(box);
+    alive.push(function () { return seen; });
+    tasks.push(function (y, dt) {
+      if (!seen) return;
+      var w = track.scrollWidth / 2;
+      if (!w) return;
+      if (scroll.v > 0.5) dir = 1; else if (scroll.v < -0.5) dir = -1;
+      x -= (0.7 + Math.min(Math.abs(scroll.v), 60) * 0.22) * dir * dt;
+      if (x <= -w) x += w; else if (x > 0) x -= w;
+      track.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
+    });
+    motionListeners.push(function (on) { if (!on) track.style.transform = ''; });
   })();
 
-  /* ---------- 4. Reviews: drag with momentum (mouse); touch scrolls natively ---------- */
+  /* ---------- 4. Services: an index that opens in place (phone and tablet) ---------- */
+  (function () {
+    var grid = doc.querySelector('.services-grid');
+    if (!grid) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.service-card'));
+    if (cards.length < 2) return;
+    var narrow = window.matchMedia('(max-width: 899px)');
+    var active = false;
+    function closedHeight(card) { var h = card.querySelector('h3'); return h ? h.offsetHeight : 64; }
+    function size(card, instant) {
+      if (instant) card.style.transition = 'none';
+      card.style.height = (card.classList.contains('is-open') ? card.scrollHeight : closedHeight(card)) + 'px';
+      if (instant) { void card.offsetHeight; card.style.transition = ''; }
+    }
+    function open(card) {
+      cards.forEach(function (c) {
+        var was = c.classList.contains('is-open'), now = c === card;
+        if (was === now) return;
+        c.classList.toggle('is-open', now);
+        size(c);
+      });
+      // Keep the opened title in view when the block above it collapses.
+      setTimeout(function () {
+        if (!active || !card.classList.contains('is-open')) return;
+        var top = card.getBoundingClientRect().top;
+        if (top < 72 || top > vh * 0.6) window.scrollBy({ top: top - 84, behavior: 'smooth' });
+      }, 640);
+    }
+    function setup() {
+      var want = narrow.matches && root.classList.contains('fx-on');
+      if (want === active) { if (active) cards.forEach(function (c) { size(c, true); }); return; }
+      active = want;
+      grid.classList.toggle('is-accordion', active);
+      cards.forEach(function (c, i) {
+        c.classList.toggle('is-open', active && i === 0);
+        if (active) size(c, true); else c.style.height = '';
+      });
+    }
+    grid.addEventListener('click', function (e) {
+      if (!active) return;
+      var card = e.target.closest('.service-card');
+      if (!card) return;
+      if (!card.classList.contains('is-open')) {
+        if (e.target.closest('a, button')) e.preventDefault();   // first tap opens, second follows the link
+        open(card);
+      } else if (!e.target.closest('a, button')) {
+        card.classList.remove('is-open');
+        size(card);
+      }
+    });
+    // Keyboard: moving the focus into a closed block opens it.
+    grid.addEventListener('focusin', function (e) {
+      if (!active || !e.target.matches(':focus-visible')) return;
+      var card = e.target.closest('.service-card');
+      if (card && !card.classList.contains('is-open')) open(card);
+    });
+    motionListeners.push(setup);
+    narrow.addEventListener && narrow.addEventListener('change', setup);
+    window.addEventListener('resize', setup);
+    if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(setup);
+    new MutationObserver(function () { setTimeout(setup, 60); }).observe(root, { attributes: true, attributeFilter: ['lang', 'data-text'] });
+    each(grid.querySelectorAll('img'), function (img) { if (!img.complete) img.addEventListener('load', function () { var c = img.closest('.service-card'); if (active && c) size(c, true); }); });
+    setup();
+  })();
+
+  /* ---------- 5. Bands that grow to full width while they arrive ---------- */
+  (function () {
+    var sel = (root.classList.contains('profile-clinica') ? '.doctors, ' : '') + '.site-footer';
+    var els = Array.prototype.slice.call(doc.querySelectorAll(sel));
+    if (!els.length) return;
+    els.forEach(function (el) { el.setAttribute('data-grow', ''); });
+    tasks.push(function () {
+      els.forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.top > vh + 40 || r.bottom < 0) return;
+        var p = clamp((vh - r.top) / (vh * 0.55), 0, 1);
+        p = 1 - Math.pow(1 - p, 2);
+        var k = p >= 1 ? '' : 'inset(0 ' + ((1 - p) * 7).toFixed(2) + '% 0 ' + ((1 - p) * 7).toFixed(2) + '% round ' + ((1 - p) * 44).toFixed(1) + 'px ' + ((1 - p) * 44).toFixed(1) + 'px 0 0)';
+        if (el._k !== k) { el._k = k; el.style.clipPath = k; el.style.webkitClipPath = k; }
+      });
+    });
+    motionListeners.push(function (on) { if (!on) els.forEach(function (el) { el._k = ''; el.style.clipPath = ''; el.style.webkitClipPath = ''; }); });
+  })();
+
+  /* ---------- 6. Depth on scroll: cover photos, studio photo, footer wordmark ---------- */
+  var heroPointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  (function () {
+    var hero = doc.querySelector('.hero');
+    var layers = [];
+    each(doc.querySelectorAll('.hero-art .hero-photo'), function (el, i) { layers.push({ el: el, k: [14, 26, 18][i] || 16, s: [0.05, 0.13, 0.085][i] || 0.07 }); });
+    var about = doc.querySelector('.about-art .about-photo');
+    var word = doc.querySelector('.footer-word');
+    var copy = doc.querySelector('.hero-copy');
+    alive.push(function () { return Math.abs(heroPointer.tx - heroPointer.x) + Math.abs(heroPointer.ty - heroPointer.y) > 0.002; });
+    tasks.push(function (y) {
+      var r;
+      if (hero && layers.length && y < hero.offsetHeight + 200) {
+        heroPointer.x += (heroPointer.tx - heroPointer.x) * 0.09; heroPointer.y += (heroPointer.ty - heroPointer.y) * 0.09;
+        layers.forEach(function (l) { l.el.style.translate = (heroPointer.x * l.k).toFixed(2) + 'px ' + (heroPointer.y * l.k - y * l.s).toFixed(2) + 'px'; });
+      }
+      if (about) {
+        r = about.parentNode.getBoundingClientRect();
+        if (r.top < vh && r.bottom > 0) about.style.translate = '0 ' + (((r.top + r.height / 2) / vh - 0.5) * -34).toFixed(1) + 'px';
+      }
+      if (word) {
+        r = word.getBoundingClientRect();
+        if (r.top < vh + 200) word.style.translate = '0 ' + (clamp((r.top - vh * 0.45) / vh, 0, 1) * 46).toFixed(1) + '%';
+      }
+    });
+    motionListeners.push(function (on) {
+      if (on) return;
+      layers.forEach(function (l) { l.el.style.translate = ''; });
+      if (about) about.style.translate = '';
+      if (word) word.style.translate = '';
+    });
+  })();
+
+  /* ---------- 7. Numbers count up: case results and progress bars ---------- */
+  (function () {
+    var nums = doc.querySelectorAll('.doctor-card .doc-meta div:first-child dd');
+    var meters = doc.querySelectorAll('meter.build-meter');
+    if (!('IntersectionObserver' in window) || (!nums.length && !meters.length)) return;
+    function run(dur, fn) {
+      var t0 = 0;
+      requestAnimationFrame(function f(ts) {
+        if (!t0) t0 = ts;
+        var p = clamp((ts - t0) / dur, 0, 1);
+        fn(1 - Math.pow(1 - p, 4), p >= 1);
+        if (p < 1) requestAnimationFrame(f);
+      });
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var el = en.target;
+        io.unobserve(el);
+        if (calm()) return;
+        if (el.tagName === 'METER') {
+          var end = parseFloat(el.getAttribute('value')) || 0;
+          run(1400, function (k) { el.value = end * k; });
+          return;
+        }
+        var text = el.textContent, m = text.match(/^(\D*?)(\d+)([.,]\d+)?(.*)$/);
+        if (!m || /\d/.test(m[4])) return;                    // only one clean number per line
+        var target = parseFloat(m[2] + (m[3] ? '.' + m[3].slice(1) : '')), dec = m[3] ? m[3].length - 1 : 0, sep = m[3] ? m[3].charAt(0) : '';
+        run(1500, function (k, done) {
+          if (done) { el.textContent = text; return; }
+          var v = (target * k).toFixed(dec);
+          el.textContent = m[1] + (dec ? v.replace('.', sep) : v) + m[4];
+        });
+      });
+    }, { threshold: 0.5 });
+    each(nums, function (el) { io.observe(el); });
+    each(meters, function (el) { io.observe(el); });
+  })();
+
+  /* ---------- 8. Page progress and leaving the page behind a wipe ---------- */
+  (function () {
+    var bar = doc.createElement('div');
+    bar.className = 'fx-progress';
+    bar.setAttribute('aria-hidden', 'true');
+    doc.body.appendChild(bar);
+    tasks.push(function (y) {
+      var max = doc.documentElement.scrollHeight - vh;
+      bar.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
+    });
+    doc.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || calm()) return;
+      var a = e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target || a.hasAttribute('download') || a.origin !== location.origin) return;
+      if (a.pathname === location.pathname && a.search === location.search) return;   // same page: anchors scroll
+      if (/\/(admin|api)\//.test(a.pathname) || !/(\.html|\/)$/.test(a.pathname)) return;
+      e.preventDefault();
+      root.classList.remove('fx-intro', 'fx-enter');
+      root.classList.add('fx-leave');
+      setTimeout(function () { location.href = a.href; }, 340);
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) root.classList.remove('fx-leave'); });
+  })();
+
+  /* ---------- 8b. Reviews on desktop: drag with momentum (phones show a stacked list) ---------- */
   (function () {
     var rail = doc.querySelector('.reviews-grid');
-    if (!rail || !finePointer) return;
+    if (!rail || !finePointer || !window.matchMedia('(min-width: 900px)').matches) return;
     var down = false, moved = false, startX = 0, startLeft = 0, samples = [], raf = 0;
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     rail.addEventListener('pointerdown', function (e) {
@@ -156,9 +392,7 @@
     rail.addEventListener('dragstart', function (e) { e.preventDefault(); });
   })();
 
-  if (tier < 2) return;
-
-  /* ---------- 5. School of fish behind the headline (canvas) ---------- */
+  /* ---------- 9. School of fish behind the headline (canvas) ---------- */
   (function () {
     var canvas = doc.querySelector('[data-school]');
     var hero = canvas && canvas.parentNode;
@@ -210,6 +444,7 @@
         }
         // Gentle current to the right and soft walls.
         f.vx += 0.012;
+        f.vy -= clamp(scroll.v, -30, 30) * 0.012;   // the page scroll stirs the water
         if (f.y < 60) f.vy += 0.05; else if (f.y > h - 60) f.vy -= 0.05;
         var sp = Math.sqrt(f.vx * f.vx + f.vy * f.vy) || 1, max = 2.3, min = 0.9;
         if (sp > max) { f.vx = f.vx / sp * max; f.vy = f.vy / sp * max; }
@@ -254,19 +489,114 @@
     doc.addEventListener('visibilitychange', sync);
     reduceQuery.addEventListener && reduceQuery.addEventListener('change', sync);
     new MutationObserver(function () { readColors(); sync(); }).observe(root, { attributes: true, attributeFilter: ['class'] });
-    if (finePointer) {
+    {
       hero.addEventListener('pointermove', function (e) {
         var r = hero.getBoundingClientRect();
         pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.on = true;
       }, { passive: true });
       hero.addEventListener('pointerleave', function () { pointer.on = false; });
+      hero.addEventListener('pointercancel', function () { pointer.on = false; });
+      // Touch: the school opens under the finger without blocking the scroll.
+      hero.addEventListener('touchmove', function (e) {
+        var t = e.touches[0], r = hero.getBoundingClientRect();
+        if (t) { pointer.x = t.clientX - r.left; pointer.y = t.clientY - r.top; pointer.on = true; }
+      }, { passive: true });
+      hero.addEventListener('touchend', function () { pointer.on = false; }, { passive: true });
     }
     sync();
   })();
 
+  syncMotion();
+  wake();
+  if (tier < 2) return;
+
+  /* ---------- 10. Kinetic line between sections (Profesional and Premium) ---------- */
+  (function () {
+    var before = doc.getElementById('casos') || doc.getElementById('nosotros');
+    var seal = doc.querySelector('.hero-seal textPath');
+    if (!before || !seal) return;
+    var band = doc.createElement('div');
+    band.className = 'fx-band';
+    band.setAttribute('aria-hidden', 'true');
+    var rows = [doc.createElement('div'), doc.createElement('div')];
+    rows.forEach(function (r) { r.className = 'fx-band-row'; band.appendChild(r); });
+    function fill() {
+      var words = seal.textContent.split(/\s*[·•|]\s*/).filter(Boolean);
+      if (!words.length) return;
+      rows.forEach(function (r, n) {
+        r.textContent = '';
+        for (var i = 0; i < 12; i++) {
+          var s = doc.createElement('span');
+          s.textContent = words[(i + n * 2) % words.length];
+          r.appendChild(s);
+          if (i % 2 === n) { var dot = doc.createElement('em'); dot.textContent = '✺'; s.appendChild(doc.createTextNode(' ')); s.appendChild(dot); }
+        }
+      });
+    }
+    fill();
+    before.parentNode.insertBefore(band, before);
+    new MutationObserver(fill).observe(seal, { childList: true, characterData: true, subtree: true });
+    tasks.push(function () {
+      var r = band.getBoundingClientRect();
+      if (r.top > vh || r.bottom < 0) return;
+      var t = (vh - r.top) / (vh + r.height);
+      rows[0].style.transform = 'translate3d(' + (-80 - t * vw * 0.9).toFixed(1) + 'px,0,0)';
+      rows[1].style.transform = 'translate3d(' + (-vw * 1.2 + t * vw * 0.9).toFixed(1) + 'px,0,0)';
+    });
+  })();
+
   if (!finePointer) return;
 
-  /* ---------- 6. Magnetic buttons ---------- */
+  /* ---------- 11. Services index: a photo follows the pointer (desktop) ---------- */
+  (function () {
+    var grid = doc.querySelector('.services-grid');
+    if (!grid) return;
+    var wide = window.matchMedia('(min-width: 900px)');
+    var peek = doc.createElement('figure');
+    peek.className = 'fx-peek';
+    peek.setAttribute('aria-hidden', 'true');
+    doc.body.appendChild(peek);
+    var imgs = {}, current = null, on = false, tx = 0, ty = 0, x = 0, y = 0, rot = 0;
+    function show(card) {
+      var key = card.getAttribute('data-service'), src = card.querySelector('.service-photo');
+      if (!src) return hide();
+      if (!imgs[key]) {
+        var im = doc.createElement('img');
+        im.alt = ''; im.decoding = 'async';
+        im.src = src.currentSrc || src.src;
+        peek.appendChild(im);
+        imgs[key] = im;
+      }
+      if (current && current !== imgs[key]) current.classList.remove('is-on');
+      current = imgs[key];
+      requestAnimationFrame(function () { if (current) current.classList.add('is-on'); });
+      if (!on) { x = tx; y = ty; }
+      on = true;
+      peek.classList.add('is-on');
+    }
+    function hide() { on = false; peek.classList.remove('is-on'); }
+    grid.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse' || !wide.matches || calm()) return hide();
+      var card = e.target.closest('.service-card');
+      tx = e.clientX; ty = e.clientY;
+      if (!card || e.target.closest('.service-actions')) return hide();
+      if (!on || imgs[card.getAttribute('data-service')] !== current) show(card);
+      wake();
+    }, { passive: true });
+    grid.addEventListener('pointerleave', hide);
+    window.addEventListener('scroll', hide, { passive: true });
+    alive.push(function () { return on && Math.abs(tx - x) + Math.abs(ty - y) > 0.3; });
+    tasks.push(function () {
+      if (!on) return;
+      var w = peek.offsetWidth, h = peek.offsetHeight, dx = tx - x;
+      x += dx * 0.14; y += (ty - y) * 0.14;
+      rot += (clamp(dx * 0.12, -9, 9) - rot) * 0.16;
+      var px = clamp(x + 36, 12, vw - w - 12), py = clamp(y - h * 0.55, 12, vh - h - 12);
+      peek.style.transform = 'translate3d(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px,0) rotate(' + rot.toFixed(2) + 'deg)';
+    });
+  })();
+
+  /* ---------- 12. Magnetic buttons ---------- */
   each(doc.querySelectorAll('[data-magnetic]'), function (btn) {
     btn.addEventListener('pointermove', function (e) {
       if (calm()) return;
@@ -281,57 +611,84 @@
 
   if (tier < 3) return;
 
-  /* ---------- 7. Cover photos follow the pointer at different depths ---------- */
+  /* ---------- 13. Premium: cover photos follow the pointer at different depths ---------- */
   (function () {
-    var art = doc.querySelector('[data-depth]');
-    var hero = art && art.closest('.hero');
-    if (!art) return;
-    var layers = [];
-    each(art.querySelectorAll('.hero-photo'), function (el, i) { layers.push({ el: el, k: [14, 26, 18][i] || 16 }); });
-    var tx = 0, ty = 0, x = 0, y = 0, raf = 0;
-    function tick() {
-      x += (tx - x) * 0.09; y += (ty - y) * 0.09;
-      layers.forEach(function (l) { l.el.style.translate = (x * l.k).toFixed(2) + 'px ' + (y * l.k).toFixed(2) + 'px'; });
-      raf = (Math.abs(tx - x) + Math.abs(ty - y) > 0.002) ? requestAnimationFrame(tick) : 0;
-    }
+    var hero = doc.querySelector('.hero');
+    if (!hero || !hero.querySelector('[data-depth]')) return;
     hero.addEventListener('pointermove', function (e) {
-      if (calm()) return;
+      if (calm() || e.pointerType !== 'mouse') return;
       var r = hero.getBoundingClientRect();
-      tx = (e.clientX - r.left) / r.width - 0.5; ty = (e.clientY - r.top) / r.height - 0.5;
-      if (!raf) raf = requestAnimationFrame(tick);
+      heroPointer.tx = (e.clientX - r.left) / r.width - 0.5; heroPointer.ty = (e.clientY - r.top) / r.height - 0.5;
+      wake();
     }, { passive: true });
-    hero.addEventListener('pointerleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(tick); });
+    hero.addEventListener('pointerleave', function () { heroPointer.tx = 0; heroPointer.ty = 0; wake(); });
   })();
 
-  /* ---------- 8. Cursor label over photos and the reviews row ---------- */
+  /* ---------- 14. Premium: case cards lean towards the pointer ---------- */
   (function () {
-    var targets = '.service-media, .area-card.has-photo, .doc-avatar.has-photo, .reviews-grid';
+    var grid = doc.getElementById('doctorsGrid');
+    if (!grid || !root.classList.contains('profile-clinica')) return;
+    var card = null, rx = 0, ry = 0, trx = 0, tryy = 0;
+    function leave() { trx = 0; tryy = 0; wake(); }
+    grid.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse' || calm()) return;
+      var c = e.target.closest('.doctor-card');
+      if (c !== card) { if (card) card.style.transform = ''; card = c; rx = 0; ry = 0; }
+      if (!c) return;
+      var r = c.getBoundingClientRect();
+      tryy = ((e.clientX - r.left) / r.width - 0.5) * 5;
+      trx = ((e.clientY - r.top) / r.height - 0.5) * -4;
+      wake();
+    }, { passive: true });
+    grid.addEventListener('pointerleave', leave);
+    alive.push(function () { return !!card && Math.abs(trx - rx) + Math.abs(tryy - ry) > 0.01; });
+    tasks.push(function () {
+      if (!card) return;
+      rx += (trx - rx) * 0.12; ry += (tryy - ry) * 0.12;
+      var rest = Math.abs(rx) + Math.abs(ry) < 0.01 && !trx && !tryy;
+      card.style.transform = rest ? '' : 'perspective(1100px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg)';
+    });
+  })();
+
+  /* ---------- 15. Premium: pointer follower, with a label over photos ---------- */
+  (function () {
+    var targets = '.area-card.has-photo, .doc-avatar.has-photo';
+    var links = 'a, button, summary, label, input, select, textarea, .service-card';
+    var label = doc.createElement('div');
+    label.className = 'fx-cursor';
+    label.setAttribute('aria-hidden', 'true');
     var dot = doc.createElement('div');
-    dot.className = 'fx-cursor';
+    dot.className = 'fx-dot';
     dot.setAttribute('aria-hidden', 'true');
+    doc.body.appendChild(label);
     doc.body.appendChild(dot);
-    var tx = 0, ty = 0, x = 0, y = 0, raf = 0, on = false;
-    function label(el) {
-      var en = (root.getAttribute('lang') || 'es').slice(0, 2) === 'en';
-      if (el.classList.contains('reviews-grid')) return en ? 'Drag' : 'Arrastre';
-      return en ? 'View' : 'Ver';
-    }
-    function tick() {
-      x += (tx - x) * 0.2; y += (ty - y) * 0.2;
-      dot.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
-      raf = on || Math.abs(tx - x) + Math.abs(ty - y) > 0.5 ? requestAnimationFrame(tick) : 0;
-    }
+    var tx = 0, ty = 0, x = 0, y = 0, dx = 0, dy = 0, on = false, started = false;
+    function word() { return (root.getAttribute('lang') || 'es').slice(0, 2) === 'en' ? 'View' : 'Ver'; }
     doc.addEventListener('pointermove', function (e) {
       if (e.pointerType !== 'mouse') return;
       tx = e.clientX; ty = e.clientY;
-      var hit = !calm() && e.target.closest && e.target.closest(targets);
-      if (hit && e.target.closest('a.btn, button.btn, .text-link, .service-open, .area-open')) hit = null;
-      if (hit && !on) { x = tx; y = ty; dot.textContent = label(hit); }
+      if (!started) { started = true; x = dx = tx; y = dy = ty; }
+      var quiet = calm();
+      var hit = !quiet && e.target.closest && e.target.closest(targets);
+      if (hit && e.target.closest('a.btn, button.btn, .text-link, .area-open')) hit = null;
+      if (hit && !on) { x = tx; y = ty; label.textContent = word(); }
       on = !!hit;
-      dot.classList.toggle('is-on', on);
-      if (on && !raf) raf = requestAnimationFrame(tick);
+      label.classList.toggle('is-on', on);
+      dot.classList.toggle('is-on', !quiet);
+      dot.classList.toggle('is-hidden', on);
+      dot.classList.toggle('is-link', !on && !!(e.target.closest && e.target.closest(links)));
+      wake();
     }, { passive: true });
-    doc.addEventListener('pointerdown', function () { dot.classList.remove('is-on'); on = false; });
-    doc.addEventListener('scroll', function () { dot.classList.remove('is-on'); on = false; }, { passive: true });
+    doc.addEventListener('pointerdown', function () { label.classList.remove('is-on'); on = false; });
+    doc.addEventListener('scroll', function () { label.classList.remove('is-on'); on = false; dot.classList.remove('is-hidden'); }, { passive: true });
+    doc.documentElement.addEventListener('pointerleave', function () { dot.classList.remove('is-on'); });
+    alive.push(function () { return started && Math.abs(tx - dx) + Math.abs(ty - dy) > 0.3; });
+    tasks.push(function () {
+      if (!started) return;
+      x += (tx - x) * 0.2; y += (ty - y) * 0.2;
+      dx += (tx - dx) * 0.32; dy += (ty - dy) * 0.32;
+      label.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+      dot.style.transform = 'translate3d(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px,0)';
+    });
   })();
 })();

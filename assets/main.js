@@ -2288,13 +2288,54 @@
     var docCount = document.getElementById('docCount');
     var activeSpec = '';
     var docTimer = null;
+    /* Changing the filter is animated with the Web Animations API so it works in
+       every browser: cards that leave fade out in place, the ones that stay glide
+       to their new position, new ones rise in one after another and the grid
+       changes height smoothly. A new choice while it runs starts from where the
+       cards are on screen. */
+    var flipToken = 0;
+    var FLIP_EASE = 'cubic-bezier(.22, 1, .36, 1)';
+    var docMatches = function(card){
+      var q = fold(docSearch ? docSearch.value : '');
+      var okSpec = !activeSpec || card.getAttribute('data-spec') === activeSpec;
+      var okText = !q || q.split(' ').every(function(w){ return (card.getAttribute('data-search') || '').indexOf(w) !== -1; });
+      return okSpec && okText;
+    };
     var filterDoctors = function(announce){
       var calm = document.documentElement.classList.contains('a11y-motion') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      if (document.startViewTransition && !calm){
-        // Cards glide to their new place instead of jumping (View Transitions API).
-        Array.prototype.forEach.call(docGrid.children, function(card, i){ card.style.viewTransitionName = 'case-' + i; });
-        document.startViewTransition(function(){ applyDocFilter(announce); });
-      } else applyDocFilter(announce);
+      var cards = Array.prototype.slice.call(docGrid.children);
+      var filtered = !!(activeSpec || fold(docSearch ? docSearch.value : ''));
+      if (calm || !docGrid.animate || !docGrid.getAnimations){ applyDocFilter(announce); docGrid.classList.toggle('is-filtered', filtered); return; }
+      var token = ++flipToken;
+      var leaving = cards.filter(function(c){ return !c.hidden && !docMatches(c); });
+      var move = function(){
+        if (token !== flipToken) return;
+        var first = [];
+        cards.forEach(function(c){ first.push(c.hidden || leaving.indexOf(c) !== -1 ? null : c.getBoundingClientRect()); });
+        var h0 = docGrid.getBoundingClientRect().height;
+        cards.concat([docGrid]).forEach(function(c){ c.getAnimations().forEach(function(a){ if (a.id === 'case-flip') a.cancel(); }); });
+        applyDocFilter(announce);
+        docGrid.classList.toggle('is-filtered', filtered);
+        var h1 = docGrid.getBoundingClientRect().height, entering = 0;
+        cards.forEach(function(c, i){
+          if (c.hidden) return;
+          var a = first[i], b = c.getBoundingClientRect(), anim;
+          if (a){
+            var dx = a.left - b.left, dy = a.top - b.top;
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+            anim = c.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 640, easing: FLIP_EASE });
+          } else {
+            anim = c.animate([{ opacity: 0, transform: 'translateY(34px) scale(.95)' }, { opacity: 1, transform: 'none' }], { duration: 620, delay: 70 + Math.min(entering++, 6) * 60, easing: FLIP_EASE, fill: 'backwards' });
+          }
+          anim.id = 'case-flip';
+        });
+        if (Math.abs(h0 - h1) > 1) docGrid.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 640, easing: FLIP_EASE }).id = 'case-flip';
+      };
+      if (!leaving.length){ move(); return; }
+      leaving.forEach(function(c){
+        c.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.93)' }], { duration: 210, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }).id = 'case-flip';
+      });
+      setTimeout(move, 200);
     };
     var applyDocFilter = function(announce){
       var q = fold(docSearch ? docSearch.value : '');
